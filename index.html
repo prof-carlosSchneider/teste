@@ -1,63 +1,48 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Mini Fazenda Isométrica 2.5D — In-Game OS</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌾</text></svg>" />
-    <link rel="stylesheet" href="/src/styles.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-  </head>
-  <body>
-    <!-- Camada de Renderização do Canvas Isométrico -->
-    <div id="canvas-container">
-      <canvas id="farm-canvas"></canvas>
-    </div>
-
-    <!-- Camada da Interface Desktop OS In-Game -->
-    <div id="desktop-layer">
-      <!-- Barra Superior / HUD -->
-      <header id="top-bar">
-        <div class="brand-section">
-          <span class="brand-icon">🌾</span>
-          <span>MINI FAZENDA ISO</span>
-          <span class="hud-badge">v0.1.0-alpha</span>
-        </div>
-
-        <div class="hud-center">
-          <div class="hud-badge hud-coins" id="hud-coins">💰 <strong>100</strong> Moedas</div>
-          <div class="hud-badge" id="hud-tiles-count">Tiles: <strong>0</strong></div>
-          <div class="hud-badge" id="hud-coord-hover">Cursor: <strong>(0, 0)</strong></div>
-          <div class="hud-badge" id="hud-fps">FPS: <strong>60</strong></div>
-        </div>
-
-        <div class="hud-controls">
-          <button class="hud-btn" id="btn-zoom-in" title="Aumentar Zoom">🔍 +</button>
-          <button class="hud-btn" id="btn-zoom-out" title="Diminuir Zoom">🔍 -</button>
-          <button class="hud-btn" id="btn-recenter" title="Centralizar Câmera na Fazenda">🎯 Centro</button>
-          <button class="hud-btn" id="btn-toggle-grid" title="Ligar/Desligar Grade"># Grade</button>
-          <button class="hud-btn" id="btn-open-editor" title="Abrir Editor de Código">📄 Editor</button>
-          <button class="hud-btn" id="btn-open-guide" title="Manual de Tags">❓ Guia</button>
-        </div>
-      </header>
-
-      <!-- Container de Janelas Flutuantes -->
-      <div id="windows-container"></div>
-
-      <!-- Barra de Tarefas Inferior (Taskbar) -->
-      <footer id="taskbar">
-        <button class="hud-btn" id="btn-start" style="font-weight: bold; background: rgba(56, 189, 248, 0.25);">
-          🌱 Fazenda OS
-        </button>
-        <div id="taskbar-windows"></div>
-        <div style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); padding-right: 8px;" id="system-clock">
-          12:00:00
-        </div>
-      </footer>
-    </div>
-
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Biblioteca – Demo Python</title>
+<link rel="stylesheet" href="https://pyscript.net/releases/2024.11.1/core.css">
+<script type="module" src="https://pyscript.net/releases/2024.11.1/core.js"></script>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--tx:#1d1d1b;--mut:#6b6a64;--br:#e2e0d8;--ac:#1f5f4a;--ac2:#e8f1ed;--red:#b3261e}
+@media(prefers-color-scheme:dark){:root{--bg:#171715;--card:#222220;--tx:#eeede8;--mut:#a3a199;--br:#383733;--ac:#5fbf9f;--ac2:#1f2d28;--red:#f2877f}}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--tx)}
+header{padding:20px 24px 0;max-width:1000px;margin:auto}
+h1{margin:0;font-size:22px}
+.sub{color:var(--mut);font-size:13px}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0}
+button{font:inherit;cursor:pointer;border:1px solid var(--br);background:var(--card);color:var(--tx);padding:7px 14px;border-radius:8px}
+button.on,button.pri{background:var(--ac);color:#fff;border-color:var(--ac)}
+button.del{color:var(--red)}
+main{max-width:1000px;margin:auto;padding:0 24px 40px}
+.card{background:var(--card);border:1px solid var(--br);border-radius:12px;padding:16px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat{background:var(--ac2);border-radius:10px;padding:12px}
+.stat b{display:block;font-size:24px}
+.stat span{font-size:12px;color:var(--mut)}
+form,.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input,select{font:inherit;padding:7px 10px;border:1px solid var(--br);border-radius:8px;background:var(--bg);color:var(--tx);min-width:0}
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;margin-top:8px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--br);white-space:nowrap}
+th{font-size:12px;color:var(--mut);text-transform:uppercase}
+.tag{padding:2px 8px;border-radius:99px;font-size:12px;background:var(--ac2);color:var(--ac)}
+.tag.bad{background:#b3261e22;color:var(--red)}
+#msg{min-height:22px;color:var(--ac);font-size:14px;margin-bottom:8px}
+h2{font-size:16px;margin:0 0 10px}
+</style>
+</head>
+<body>
+<header>
+  <h1>📚 Sistema de Biblioteca</h1>
+  <div class="sub">Demonstração em Python (PyScript) · dados salvos no seu navegador</div>
+  <nav id="nav"></nav>
+</header>
+<main><div id="msg"></div><div id="view">Carregando Python…</div></main>
+<script type="py" src="./main.py"></script>
+</body>
 </html>
