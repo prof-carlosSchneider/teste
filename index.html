@@ -1,48 +1,1695 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Biblioteca – Demo Python</title>
-<link rel="stylesheet" href="https://pyscript.net/releases/2024.11.1/core.css">
-<script type="module" src="https://pyscript.net/releases/2024.11.1/core.js"></script>
-<style>
-:root{--bg:#f6f5f1;--card:#fff;--tx:#1d1d1b;--mut:#6b6a64;--br:#e2e0d8;--ac:#1f5f4a;--ac2:#e8f1ed;--red:#b3261e}
-@media(prefers-color-scheme:dark){:root{--bg:#171715;--card:#222220;--tx:#eeede8;--mut:#a3a199;--br:#383733;--ac:#5fbf9f;--ac2:#1f2d28;--red:#f2877f}}
-*{box-sizing:border-box}
-body{margin:0;font:15px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--tx)}
-header{padding:20px 24px 0;max-width:1000px;margin:auto}
-h1{margin:0;font-size:22px}
-.sub{color:var(--mut);font-size:13px}
-nav{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0}
-button{font:inherit;cursor:pointer;border:1px solid var(--br);background:var(--card);color:var(--tx);padding:7px 14px;border-radius:8px}
-button.on,button.pri{background:var(--ac);color:#fff;border-color:var(--ac)}
-button.del{color:var(--red)}
-main{max-width:1000px;margin:auto;padding:0 24px 40px}
-.card{background:var(--card);border:1px solid var(--br);border-radius:12px;padding:16px;margin-bottom:16px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
-.stat{background:var(--ac2);border-radius:10px;padding:12px}
-.stat b{display:block;font-size:24px}
-.stat span{font-size:12px;color:var(--mut)}
-form,.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-input,select{font:inherit;padding:7px 10px;border:1px solid var(--br);border-radius:8px;background:var(--bg);color:var(--tx);min-width:0}
-.wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;margin-top:8px}
-th,td{text-align:left;padding:8px;border-bottom:1px solid var(--br);white-space:nowrap}
-th{font-size:12px;color:var(--mut);text-transform:uppercase}
-.tag{padding:2px 8px;border-radius:99px;font-size:12px;background:var(--ac2);color:var(--ac)}
-.tag.bad{background:#b3261e22;color:var(--red)}
-#msg{min-height:22px;color:var(--ac);font-size:14px;margin-bottom:8px}
-h2{font-size:16px;margin:0 0 10px}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BiblioTech — Sistema de Controle de Biblioteca</title>
+
+    <!-- Fonte Inter via Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons via CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Configuração do Tailwind para usar a fonte Inter -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
 </head>
-<body>
-<header>
-  <h1>📚 Sistema de Biblioteca</h1>
-  <div class="sub">Demonstração em Python (PyScript) · dados salvos no seu navegador</div>
-  <nav id="nav"></nav>
-</header>
-<main><div id="msg"></div><div id="view">Carregando Python…</div></main>
-<script type="py" src="./main.py"></script>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-indigo-100 selection:text-indigo-700 overflow-x-hidden">
+
+    <!-- Container Principal -->
+    <div class="min-h-screen flex flex-col lg:flex-row">
+
+        <!-- Backdrop da Sidebar Mobile -->
+        <div id="sidebar-backdrop" onclick="toggleSidebar(false)" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 hidden lg:hidden transition-opacity"></div>
+
+        <!-- Sidebar (Navegação Lateral Responsiva) -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col transform -translate-x-full lg:translate-x-0 lg:static transition-transform duration-200 ease-in-out shadow-xl lg:shadow-none">
+            <!-- Logo / Cabeçalho da Sidebar -->
+            <div class="h-16 flex items-center justify-between px-6 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-sm">
+                        <i data-lucide="book-open-check" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-base font-bold text-slate-900 leading-tight">BiblioTech</h1>
+                        <p class="text-[11px] font-medium text-slate-500">Gestão de Biblioteca</p>
+                    </div>
+                </div>
+                <button onclick="toggleSidebar(false)" class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100" aria-label="Fechar menu">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Links de Navegação -->
+            <nav class="flex-1 px-3 py-5 space-y-1.5 overflow-y-auto">
+                <button onclick="switchTab('dashboard')" data-tab="dashboard" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                    <span>Painel Geral</span>
+                </button>
+
+                <button onclick="switchTab('books')" data-tab="books" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors">
+                    <i data-lucide="library" class="w-5 h-5"></i>
+                    <span>Acervo (Livros)</span>
+                </button>
+
+                <button onclick="switchTab('loans')" data-tab="loans" class="nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
+                        <span>Empréstimos</span>
+                    </div>
+                    <span id="sidebar-overdue-badge" class="hidden px-2 py-0.5 text-xs font-semibold rounded-full bg-rose-100 text-rose-700">0</span>
+                </button>
+
+                <button onclick="switchTab('members')" data-tab="members" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors">
+                    <i data-lucide="users" class="w-5 h-5"></i>
+                    <span>Leitores</span>
+                </button>
+            </nav>
+
+            <!-- Rodapé da Sidebar -->
+            <div class="p-4 border-t border-slate-100 space-y-2">
+                <div class="bg-slate-50 rounded-xl p-3 border border-slate-200/70">
+                    <div class="flex items-center gap-2 text-xs font-medium text-slate-600 mb-1">
+                        <i data-lucide="database" class="w-3.5 h-3.5 text-indigo-500"></i>
+                        <span>Armazenamento Local</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 leading-relaxed">Seus dados são salvos automaticamente neste navegador.</p>
+                </div>
+                <button onclick="confirmResetDemoData()" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors">
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                    <span>Restaurar Dados de Exemplo</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Área Principal de Conteúdo -->
+        <div class="flex-1 flex flex-col min-w-0">
+
+            <!-- Header Superior -->
+            <header class="sticky top-0 z-30 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3 min-w-0">
+                    <button onclick="toggleSidebar(true)" class="lg:hidden p-2 -ml-2 rounded-xl text-slate-600 hover:bg-slate-100" aria-label="Abrir menu">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                    <div class="truncate">
+                        <h2 id="page-title" class="text-lg sm:text-xl font-bold text-slate-900 truncate">Painel Geral</h2>
+                        <p id="page-subtitle" class="text-xs text-slate-500 hidden sm:block truncate">Visão geral do acervo, empréstimos e leitores</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <button onclick="openLoanModal()" class="inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl shadow-xs transition-all active:scale-95">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span class="hidden sm:inline">Novo Empréstimo</span>
+                        <span class="sm:hidden">Emprestar</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Conteúdo Dinâmico das Abas -->
+            <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+
+                <!-- ========================================== -->
+                <!-- ABA 1: PAINEL GERAL (DASHBOARD)            -->
+                <!-- ========================================== -->
+                <section id="tab-dashboard" class="tab-section space-y-6">
+                    <!-- Cards de Métricas -->
+                    <div id="dashboard-metrics" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <!-- Renderizado via JS -->
+                    </div>
+
+                    <!-- Seção de Alertas de Atraso -->
+                    <div id="dashboard-overdue-section">
+                        <!-- Renderizado via JS -->
+                    </div>
+
+                    <!-- Últimos Empréstimos Realizados -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                        <div class="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div>
+                                <h3 class="text-base font-semibold text-slate-900">Últimos Empréstimos Realizados</h3>
+                                <p class="text-xs text-slate-500">Acompanhe a movimentação recente e registre devoluções rápidas</p>
+                            </div>
+                            <button onclick="switchTab('loans')" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1 self-start sm:self-auto">
+                                <span>Ver todos</span>
+                                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                        <div id="dashboard-recent-loans" class="divide-y divide-slate-100">
+                            <!-- Renderizado via JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ========================================== -->
+                <!-- ABA 2: GESTÃO DE ACERVO (LIVROS)           -->
+                <!-- ========================================== -->
+                <section id="tab-books" class="tab-section hidden space-y-5">
+                    <!-- Barra de Ações e Filtros -->
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="relative flex-1">
+                                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                                <input type="text" id="book-search" oninput="renderBooks()" placeholder="Buscar por título, autor, ISBN ou categoria..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all">
+                            </div>
+                            <button onclick="openBookModal()" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium rounded-xl transition-all active:scale-95 shrink-0">
+                                <i data-lucide="book-plus" class="w-4 h-4"></i>
+                                <span>Cadastrar Livro</span>
+                            </button>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <div class="flex-1 sm:max-w-xs">
+                                <label for="book-category-filter" class="sr-only">Filtrar por categoria</label>
+                                <select id="book-category-filter" onchange="renderBooks()" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                                    <option value="all">Todas as categorias</option>
+                                </select>
+                            </div>
+                            <div class="flex-1 sm:max-w-xs">
+                                <label for="book-availability-filter" class="sr-only">Filtrar por disponibilidade</label>
+                                <select id="book-availability-filter" onchange="renderBooks()" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                                    <option value="all">Disponibilidade: Todos</option>
+                                    <option value="available">Apenas Disponíveis</option>
+                                    <option value="unavailable">Indisponíveis (Esgotados)</option>
+                                </select>
+                            </div>
+                            <div id="books-count-label" class="sm:ml-auto flex items-center text-xs font-medium text-slate-500">
+                                <!-- Contagem renderizada via JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista / Tabela de Livros -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/80 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                        <th class="py-3.5 px-5">Livro / Autor</th>
+                                        <th class="py-3.5 px-4 hidden md:table-cell">Categoria</th>
+                                        <th class="py-3.5 px-4 hidden lg:table-cell">ISBN / Ano</th>
+                                        <th class="py-3.5 px-4">Disponibilidade</th>
+                                        <th class="py-3.5 px-5 text-right">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="books-table-body" class="divide-y divide-slate-100 text-sm">
+                                    <!-- Renderizado via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ========================================== -->
+                <!-- ABA 3: EMPRÉSTIMOS E DEVOLUÇÕES            -->
+                <!-- ========================================== -->
+                <section id="tab-loans" class="tab-section hidden space-y-5">
+                    <!-- Barra de Filtros e Busca -->
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="flex flex-wrap items-center gap-2" id="loan-status-filters">
+                                <button onclick="setLoanFilter('all')" data-loan-filter="all" class="loan-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors">Todos</button>
+                                <button onclick="setLoanFilter('active')" data-loan-filter="active" class="loan-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors">Ativos</button>
+                                <button onclick="setLoanFilter('overdue')" data-loan-filter="overdue" class="loan-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors">Atrasados</button>
+                                <button onclick="setLoanFilter('returned')" data-loan-filter="returned" class="loan-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors">Devolvidos</button>
+                            </div>
+                            <div class="relative w-full sm:w-64">
+                                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                                <input type="text" id="loan-search" oninput="renderLoans()" placeholder="Buscar livro ou leitor..." class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabela de Empréstimos -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/80 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                        <th class="py-3.5 px-5">Livro</th>
+                                        <th class="py-3.5 px-4">Leitor</th>
+                                        <th class="py-3.5 px-4 hidden md:table-cell">Datas</th>
+                                        <th class="py-3.5 px-4">Status</th>
+                                        <th class="py-3.5 px-5 text-right">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="loans-table-body" class="divide-y divide-slate-100 text-sm">
+                                    <!-- Renderizado via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ========================================== -->
+                <!-- ABA 4: GESTÃO DE LEITORES (MEMBROS)        -->
+                <!-- ========================================== -->
+                <section id="tab-members" class="tab-section hidden space-y-5">
+                    <!-- Barra de Busca e Cadastro -->
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="relative flex-1">
+                            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                            <input type="text" id="member-search" oninput="renderMembers()" placeholder="Buscar leitor por nome, matrícula ou e-mail..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all">
+                        </div>
+                        <button onclick="openMemberModal()" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium rounded-xl transition-all active:scale-95 shrink-0">
+                            <i data-lucide="user-plus" class="w-4 h-4"></i>
+                            <span>Cadastrar Leitor</span>
+                        </button>
+                    </div>
+
+                    <!-- Grid de Cards de Leitores -->
+                    <div id="members-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        <!-- Renderizado via JS -->
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL: CADASTRAR / EDITAR LIVRO            -->
+    <!-- ========================================== -->
+    <div id="book-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200 animate-fade-in">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 id="book-modal-title" class="text-lg font-bold text-slate-900">Cadastrar Novo Livro</h3>
+                <button onclick="closeModal('book-modal')" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="book-form" onsubmit="handleBookSubmit(event)" class="p-6 space-y-4">
+                <input type="hidden" id="book-id">
+                <div>
+                    <label for="book-title" class="block text-xs font-semibold text-slate-700 mb-1.5">Título do Livro *</label>
+                    <input type="text" id="book-title" required placeholder="Ex: Dom Casmurro" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="book-author" class="block text-xs font-semibold text-slate-700 mb-1.5">Autor *</label>
+                        <input type="text" id="book-author" required placeholder="Ex: Machado de Assis" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="book-category" class="block text-xs font-semibold text-slate-700 mb-1.5">Categoria *</label>
+                        <input type="text" id="book-category" list="category-suggestions" required placeholder="Ex: Literatura Brasileira" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                        <datalist id="category-suggestions">
+                            <option value="Literatura Brasileira">
+                            <option value="Ficção Científica">
+                            <option value="Clássicos">
+                            <option value="Tecnologia">
+                            <option value="História">
+                            <option value="Filosofia">
+                            <option value="Infantil e Juvenil">
+                            <option value="Biografia">
+                        </datalist>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="sm:col-span-1">
+                        <label for="book-isbn" class="block text-xs font-semibold text-slate-700 mb-1.5">ISBN *</label>
+                        <input type="text" id="book-isbn" required placeholder="978-85-..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="book-year" class="block text-xs font-semibold text-slate-700 mb-1.5">Ano *</label>
+                        <input type="number" id="book-year" required min="1400" max="2100" placeholder="2024" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="book-copies" class="block text-xs font-semibold text-slate-700 mb-1.5">Exemplares *</label>
+                        <input type="number" id="book-copies" required min="1" max="500" value="1" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+                </div>
+                <div id="book-copies-hint" class="hidden text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2">
+                    <!-- Aviso sobre exemplares emprestados ao editar -->
+                </div>
+                <div class="pt-2 flex items-center justify-end gap-2.5">
+                    <button type="button" onclick="closeModal('book-modal')" class="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors">Cancelar</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-all active:scale-95">Salvar Livro</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL: NOVO EMPRÉSTIMO                     -->
+    <!-- ========================================== -->
+    <div id="loan-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="text-lg font-bold text-slate-900">Registrar Novo Empréstimo</h3>
+                <button onclick="closeModal('loan-modal')" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="loan-form" onsubmit="handleLoanSubmit(event)" class="p-6 space-y-4">
+                <div>
+                    <label for="loan-book-select" class="block text-xs font-semibold text-slate-700 mb-1.5">Selecione o Livro (apenas disponíveis) *</label>
+                    <select id="loan-book-select" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                        <!-- Populado via JS -->
+                    </select>
+                </div>
+                <div>
+                    <label for="loan-member-select" class="block text-xs font-semibold text-slate-700 mb-1.5">Selecione o Leitor *</label>
+                    <select id="loan-member-select" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                        <!-- Populado via JS -->
+                    </select>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="loan-date" class="block text-xs font-semibold text-slate-700 mb-1.5">Data do Empréstimo *</label>
+                        <input type="date" id="loan-date" required onchange="syncDefaultDueDate()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="loan-due-date" class="block text-xs font-semibold text-slate-700 mb-1.5">Previsão de Devolução *</label>
+                        <input type="date" id="loan-due-date" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500 flex items-center gap-1.5">
+                    <i data-lucide="info" class="w-3.5 h-3.5 text-indigo-500 shrink-0"></i>
+                    <span>O prazo padrão sugerido é de 14 dias corridos a partir da data do empréstimo.</span>
+                </p>
+                <div class="pt-2 flex items-center justify-end gap-2.5">
+                    <button type="button" onclick="closeModal('loan-modal')" class="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors">Cancelar</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-all active:scale-95">Confirmar Empréstimo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL: CADASTRAR / EDITAR LEITOR           -->
+    <!-- ========================================== -->
+    <div id="member-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 id="member-modal-title" class="text-lg font-bold text-slate-900">Cadastrar Novo Leitor</h3>
+                <button onclick="closeModal('member-modal')" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="member-form" onsubmit="handleMemberSubmit(event)" class="p-6 space-y-4">
+                <input type="hidden" id="member-id">
+                <div>
+                    <label for="member-name" class="block text-xs font-semibold text-slate-700 mb-1.5">Nome Completo *</label>
+                    <input type="text" id="member-name" required placeholder="Ex: Ana Clara Silva" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="member-registration" class="block text-xs font-semibold text-slate-700 mb-1.5">Código / Matrícula *</label>
+                        <input type="text" id="member-registration" required placeholder="Ex: BIB-2026-006" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="member-phone" class="block text-xs font-semibold text-slate-700 mb-1.5">Telefone *</label>
+                        <input type="tel" id="member-phone" required placeholder="(41) 99999-0000" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+                </div>
+                <div>
+                    <label for="member-email" class="block text-xs font-semibold text-slate-700 mb-1.5">E-mail *</label>
+                    <input type="email" id="member-email" required placeholder="leitor@email.com" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                </div>
+                <div class="pt-2 flex items-center justify-end gap-2.5">
+                    <button type="button" onclick="closeModal('member-modal')" class="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors">Cancelar</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-all active:scale-95">Salvar Leitor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL GENÉRICO DE CONFIRMAÇÃO              -->
+    <!-- ========================================== -->
+    <div id="confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 p-6 space-y-4">
+            <div class="flex items-start gap-4">
+                <div id="confirm-icon-wrap" class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                    <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 id="confirm-title" class="text-base font-bold text-slate-900">Confirmar ação</h3>
+                    <p id="confirm-message" class="text-sm text-slate-600 mt-1 leading-relaxed"></p>
+                </div>
+            </div>
+            <div class="flex items-center justify-end gap-2.5 pt-2">
+                <button type="button" onclick="closeModal('confirm-modal')" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors">Cancelar</button>
+                <button type="button" id="confirm-action-btn" class="px-4 py-2 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-700 text-white shadow-xs transition-all active:scale-95">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- CONTAINER DE NOTIFICAÇÕES (TOASTS)         -->
+    <!-- ========================================== -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-[60] flex flex-col gap-2.5 max-w-sm w-[calc(100%-2rem)] pointer-events-none">
+        <!-- Toasts inseridos dinamicamente -->
+    </div>
+
+    <!-- ========================================== -->
+    <!-- LÓGICA JAVASCRIPT DO SISTEMA               -->
+    <!-- ========================================== -->
+    <script>
+        // Chaves de persistência no localStorage
+        const STORAGE_KEYS = {
+            BOOKS: 'bibliotech_books_v1',
+            MEMBERS: 'bibliotech_members_v1',
+            LOANS: 'bibliotech_loans_v1'
+        };
+
+        // Estado global da aplicação
+        let state = {
+            books: [],
+            members: [],
+            loans: [],
+            currentTab: 'dashboard',
+            loanFilter: 'all'
+        };
+
+        // Callback armazenado para o modal de confirmação
+        let pendingConfirmAction = null;
+
+        // ==========================================
+        // UTILITÁRIOS DE DATA E SEGURANÇA
+        // ==========================================
+
+        /** Retorna a data local atual no formato YYYY-MM-DD */
+        function getTodayStr() {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        /** Soma ou subtrai dias de uma string YYYY-MM-DD sem erros de fuso horário */
+        function addDays(dateStr, days) {
+            const [y, m, d] = dateStr.split('-').map(Number);
+            const date = new Date(y, m - 1, d);
+            date.setDate(date.getDate() + days);
+            const ny = date.getFullYear();
+            const nm = String(date.getMonth() + 1).padStart(2, '0');
+            const nd = String(date.getDate()).padStart(2, '0');
+            return `${ny}-${nm}-${nd}`;
+        }
+
+        /** Formata YYYY-MM-DD para DD/MM/YYYY */
+        function formatDateBR(dateStr) {
+            if (!dateStr) return '-';
+            const [y, m, d] = dateStr.split('-');
+            return `${d}/${m}/${y}`;
+        }
+
+        /** Verifica se um empréstimo ativo está atrasado */
+        function isLoanOverdue(loan) {
+            return loan.status === 'active' && loan.dueDate < getTodayStr();
+        }
+
+        /** Calcula quantos dias um empréstimo está atrasado */
+        function getDaysOverdue(dueDateStr) {
+            const [y1, m1, d1] = dueDateStr.split('-').map(Number);
+            const [y2, m2, d2] = getTodayStr().split('-').map(Number);
+            const due = new Date(y1, m1 - 1, d1);
+            const today = new Date(y2, m2 - 1, d2);
+            const diffMs = today - due;
+            return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+        }
+
+        /** Gera um identificador único simples */
+        function generateId(prefix) {
+            return `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+        }
+
+        /** Escapa caracteres HTML para evitar injeção XSS */
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        /** Retorna as iniciais de um nome (máx 2 letras) */
+        function getInitials(name) {
+            const parts = name.trim().split(/\s+/);
+            if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+
+        // ==========================================
+        // DADOS INICIAIS E PERSISTÊNCIA (localStorage)
+        // ==========================================
+
+        /** Cria dados iniciais realistas de demonstração */
+        function createSeedData() {
+            const today = getTodayStr();
+
+            const books = [
+                { id: 'bk_1', title: 'Dom Casmurro', author: 'Machado de Assis', isbn: '978-85-359-0277-8', category: 'Literatura Brasileira', year: 1899, totalCopies: 4, availableCopies: 3 },
+                { id: 'bk_2', title: '1984', author: 'George Orwell', isbn: '978-85-359-1484-9', category: 'Ficção Científica', year: 1949, totalCopies: 3, availableCopies: 2 },
+                { id: 'bk_3', title: 'O Pequeno Príncipe', author: 'Antoine de Saint-Exupéry', isbn: '978-85-220-0523-9', category: 'Clássicos', year: 1943, totalCopies: 5, availableCopies: 5 },
+                { id: 'bk_4', title: 'Código Limpo', author: 'Robert C. Martin', isbn: '978-85-760-8267-5', category: 'Tecnologia', year: 2008, totalCopies: 2, availableCopies: 1 },
+                { id: 'bk_5', title: 'Grande Sertão: Veredas', author: 'João Guimarães Rosa', isbn: '978-85-359-3198-3', category: 'Literatura Brasileira', year: 1956, totalCopies: 2, availableCopies: 2 },
+                { id: 'bk_6', title: 'Capitães da Areia', author: 'Jorge Amado', isbn: '978-85-359-1169-5', category: 'Literatura Brasileira', year: 1937, totalCopies: 3, availableCopies: 2 },
+                { id: 'bk_7', title: 'Sapiens: Uma Breve História da Humanidade', author: 'Yuval Noah Harari', isbn: '978-85-254-3218-6', category: 'História', year: 2011, totalCopies: 1, availableCopies: 0 }
+            ];
+
+            const members = [
+                { id: 'mb_1', name: 'Ana Clara Silva', email: 'ana.silva@email.com', phone: '(41) 99812-3456', registration: 'BIB-2026-001' },
+                { id: 'mb_2', name: 'Bruno Henrique Costa', email: 'bruno.costa@email.com', phone: '(41) 99745-8901', registration: 'BIB-2026-002' },
+                { id: 'mb_3', name: 'Camila Rodrigues', email: 'camila.rodrigues@email.com', phone: '(41) 99633-2109', registration: 'BIB-2026-003' },
+                { id: 'mb_4', name: 'Diego Ferreira', email: 'diego.ferreira@email.com', phone: '(41) 99120-5544', registration: 'BIB-2026-004' },
+                { id: 'mb_5', name: 'Mariana Oliveira', email: 'mariana.oliveira@email.com', phone: '(41) 99567-1122', registration: 'BIB-2026-005' }
+            ];
+
+            const loans = [
+                // Empréstimo ativo em dia
+                { id: 'ln_1', bookId: 'bk_1', memberId: 'mb_1', loanDate: addDays(today, -5), dueDate: addDays(today, 9), returnDate: null, status: 'active' },
+                // Empréstimo atrasado (5 dias)
+                { id: 'ln_2', bookId: 'bk_2', memberId: 'mb_2', loanDate: addDays(today, -19), dueDate: addDays(today, -5), returnDate: null, status: 'active' },
+                // Empréstimo ativo em dia
+                { id: 'ln_3', bookId: 'bk_4', memberId: 'mb_3', loanDate: addDays(today, -2), dueDate: addDays(today, 12), returnDate: null, status: 'active' },
+                // Empréstimo atrasado (2 dias)
+                { id: 'ln_4', bookId: 'bk_6', memberId: 'mb_4', loanDate: addDays(today, -16), dueDate: addDays(today, -2), returnDate: null, status: 'active' },
+                // Empréstimo ativo deixando Sapiens com 0 disponíveis
+                { id: 'ln_5', bookId: 'bk_7', memberId: 'mb_1', loanDate: addDays(today, -10), dueDate: addDays(today, 4), returnDate: null, status: 'active' },
+                // Empréstimos já devolvidos
+                { id: 'ln_6', bookId: 'bk_3', memberId: 'mb_5', loanDate: addDays(today, -22), dueDate: addDays(today, -8), returnDate: addDays(today, -9), status: 'returned' },
+                { id: 'ln_7', bookId: 'bk_5', memberId: 'mb_3', loanDate: addDays(today, -18), dueDate: addDays(today, -4), returnDate: addDays(today, -5), status: 'returned' }
+            ];
+
+            return { books, members, loans };
+        }
+
+        /** Carrega os dados do localStorage ou inicializa com dados de exemplo */
+        function loadState() {
+            try {
+                const rawBooks = localStorage.getItem(STORAGE_KEYS.BOOKS);
+                const rawMembers = localStorage.getItem(STORAGE_KEYS.MEMBERS);
+                const rawLoans = localStorage.getItem(STORAGE_KEYS.LOANS);
+
+                if (rawBooks && rawMembers && rawLoans) {
+                    state.books = JSON.parse(rawBooks);
+                    state.members = JSON.parse(rawMembers);
+                    state.loans = JSON.parse(rawLoans);
+                } else {
+                    const seed = createSeedData();
+                    state.books = seed.books;
+                    state.members = seed.members;
+                    state.loans = seed.loans;
+                    saveState();
+                }
+            } catch (err) {
+                console.error('Erro ao carregar dados do localStorage:', err);
+                const seed = createSeedData();
+                state.books = seed.books;
+                state.members = seed.members;
+                state.loans = seed.loans;
+                showToast('Não foi possível ler o armazenamento local. Dados de exemplo carregados.', 'warning');
+            }
+        }
+
+        /** Persiste o estado atual no localStorage */
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEYS.BOOKS, JSON.stringify(state.books));
+                localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(state.members));
+                localStorage.setItem(STORAGE_KEYS.LOANS, JSON.stringify(state.loans));
+            } catch (err) {
+                console.error('Erro ao salvar no localStorage:', err);
+                showToast('Erro ao salvar alterações no navegador.', 'error');
+            }
+        }
+
+        /** Confirmação para restaurar dados de demonstração */
+        function confirmResetDemoData() {
+            openConfirmModal(
+                'Restaurar dados de exemplo?',
+                'Todas as alterações atuais (livros, leitores e empréstimos) serão substituídas pelos dados iniciais de demonstração.',
+                () => {
+                    const seed = createSeedData();
+                    state.books = seed.books;
+                    state.members = seed.members;
+                    state.loans = seed.loans;
+                    saveState();
+                    renderAll();
+                    showToast('Dados de exemplo restaurados com sucesso!', 'info');
+                },
+                'Restaurar'
+            );
+        }
+
+        // ==========================================
+        // NAVEGAÇÃO E INTERFACE
+        // ==========================================
+
+        const TAB_META = {
+            dashboard: { title: 'Painel Geral', subtitle: 'Visão geral do acervo, empréstimos e leitores' },
+            books: { title: 'Acervo de Livros', subtitle: 'Gerencie títulos, exemplares e disponibilidade' },
+            loans: { title: 'Empréstimos e Devoluções', subtitle: 'Controle retiradas, prazos, renovações e atrasos' },
+            members: { title: 'Leitores Cadastrados', subtitle: 'Gerencie os membros e acompanhe empréstimos ativos' }
+        };
+
+        /** Alterna entre as abas do sistema */
+        function switchTab(tabId) {
+            state.currentTab = tabId;
+
+            // Atualiza visibilidade das seções
+            document.querySelectorAll('.tab-section').forEach(sec => sec.classList.add('hidden'));
+            const activeSec = document.getElementById(`tab-${tabId}`);
+            if (activeSec) activeSec.classList.remove('hidden');
+
+            // Atualiza estilo dos botões da sidebar
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                const isActive = btn.dataset.tab === tabId;
+                if (isActive) {
+                    btn.classList.add('bg-indigo-50', 'text-indigo-700', 'font-semibold');
+                    btn.classList.remove('text-slate-600', 'hover:bg-slate-100', 'hover:text-slate-900');
+                } else {
+                    btn.classList.remove('bg-indigo-50', 'text-indigo-700', 'font-semibold');
+                    btn.classList.add('text-slate-600', 'hover:bg-slate-100', 'hover:text-slate-900');
+                }
+            });
+
+            // Atualiza cabeçalho
+            document.getElementById('page-title').textContent = TAB_META[tabId].title;
+            document.getElementById('page-subtitle').textContent = TAB_META[tabId].subtitle;
+
+            // Fecha sidebar no mobile
+            toggleSidebar(false);
+
+            // Re-renderiza o conteúdo da aba ativa
+            renderAll();
+        }
+
+        /** Abre ou fecha a sidebar em telas menores */
+        function toggleSidebar(open) {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            if (open) {
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            }
+        }
+
+        /** Renderiza todos os módulos e atualiza os ícones Lucide */
+        function renderAll() {
+            updateSidebarBadges();
+            renderDashboard();
+            populateCategoryFilter();
+            renderBooks();
+            renderLoans();
+            renderMembers();
+            lucide.createIcons();
+        }
+
+        /** Atualiza o contador de empréstimos atrasados na sidebar */
+        function updateSidebarBadges() {
+            const overdueCount = state.loans.filter(isLoanOverdue).length;
+            const badge = document.getElementById('sidebar-overdue-badge');
+            if (overdueCount > 0) {
+                badge.textContent = overdueCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        // ==========================================
+        // RENDERIZAÇÃO: PAINEL GERAL (DASHBOARD)
+        // ==========================================
+
+        function renderDashboard() {
+            const totalTitles = state.books.length;
+            const totalCopies = state.books.reduce((sum, b) => sum + b.totalCopies, 0);
+            const availableCopies = state.books.reduce((sum, b) => sum + b.availableCopies, 0);
+            const activeLoans = state.loans.filter(l => l.status === 'active');
+            const overdueLoans = activeLoans.filter(isLoanOverdue);
+            const totalMembers = state.members.length;
+
+            // 1. Cards de Métricas
+            const metricsHTML = `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Acervo Total</span>
+                        <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
+                            <i data-lucide="library" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="text-2xl font-bold text-slate-900">${totalTitles} <span class="text-sm font-normal text-slate-500">títulos</span></div>
+                        <p class="text-xs text-slate-500 mt-0.5">${totalCopies} exemplares no total</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Disponíveis</span>
+                        <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                            <i data-lucide="book-check" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="text-2xl font-bold text-emerald-600">${availableCopies}</div>
+                        <p class="text-xs text-slate-500 mt-0.5">Prontos para empréstimo</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Empréstimos Ativos</span>
+                        <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                            <i data-lucide="arrow-left-right" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="text-2xl font-bold text-indigo-600">${activeLoans.length}</div>
+                        <p class="text-xs text-slate-500 mt-0.5">Exemplares em circulação</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border ${overdueLoans.length > 0 ? 'border-rose-200 bg-rose-50/30' : 'border-slate-200'} shadow-xs flex flex-col justify-between">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold ${overdueLoans.length > 0 ? 'text-rose-600' : 'text-slate-500'} uppercase tracking-wide">Em Atraso</span>
+                        <div class="w-9 h-9 rounded-xl ${overdueLoans.length > 0 ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-400'} flex items-center justify-center">
+                            <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="text-2xl font-bold ${overdueLoans.length > 0 ? 'text-rose-600' : 'text-slate-900'}">${overdueLoans.length}</div>
+                        <p class="text-xs ${overdueLoans.length > 0 ? 'text-rose-600/80' : 'text-slate-500'} mt-0.5">${overdueLoans.length > 0 ? 'Requerem atenção imediata' : 'Nenhum atraso registrado'}</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between sm:col-span-2 lg:col-span-1">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Leitores</span>
+                        <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                            <i data-lucide="users" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="text-2xl font-bold text-slate-900">${totalMembers}</div>
+                        <p class="text-xs text-slate-500 mt-0.5">Membros cadastrados</p>
+                    </div>
+                </div>
+            `;
+            document.getElementById('dashboard-metrics').innerHTML = metricsHTML;
+
+            // 2. Seção de Alertas de Atraso
+            const overdueContainer = document.getElementById('dashboard-overdue-section');
+            if (overdueLoans.length > 0) {
+                const itemsHTML = overdueLoans.map(loan => {
+                    const book = state.books.find(b => b.id === loan.bookId);
+                    const member = state.members.find(m => m.id === loan.memberId);
+                    const days = getDaysOverdue(loan.dueDate);
+                    return `
+                        <div class="p-4 bg-white/90 rounded-xl border border-rose-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="font-semibold text-sm text-slate-900">${escapeHTML(book ? book.title : 'Livro removido')}</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-700">
+                                        ${days} ${days === 1 ? 'dia' : 'dias'} em atraso
+                                    </span>
+                                </div>
+                                <p class="text-xs text-slate-600 mt-1">
+                                    Leitor: <span class="font-medium text-slate-800">${escapeHTML(member ? member.name : 'Desconhecido')}</span>
+                                    ${member ? `• ${escapeHTML(member.phone)}` : ''}
+                                    • Previsto para <span class="font-medium text-rose-700">${formatDateBR(loan.dueDate)}</span>
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <button onclick="renewLoan('${loan.id}')" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors">
+                                    Renovar +7d
+                                </button>
+                                <button onclick="returnLoan('${loan.id}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors">
+                                    Devolver
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                overdueContainer.innerHTML = `
+                    <div class="bg-rose-50 border border-rose-200 rounded-2xl p-5 space-y-3">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2.5 text-rose-800">
+                                <i data-lucide="bell-ring" class="w-5 h-5 text-rose-600"></i>
+                                <h3 class="text-sm font-bold">Alertas de Empréstimos Vencidos (${overdueLoans.length})</h3>
+                            </div>
+                            <button onclick="setLoanFilter('overdue'); switchTab('loans');" class="text-xs font-semibold text-rose-700 hover:underline">
+                                Gerenciar atrasos
+                            </button>
+                        </div>
+                        <div class="space-y-2.5">${itemsHTML}</div>
+                    </div>
+                `;
+            } else {
+                overdueContainer.innerHTML = `
+                    <div class="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl px-5 py-3.5 flex items-center gap-3 text-emerald-800">
+                        <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600 shrink-0"></i>
+                        <p class="text-sm font-medium">Tudo em dia! Não há nenhum empréstimo atrasado no momento.</p>
+                    </div>
+                `;
+            }
+
+            // 3. Lista dos Últimos Empréstimos
+            const recentLoans = [...state.loans]
+                .sort((a, b) => b.loanDate.localeCompare(a.loanDate))
+                .slice(0, 6);
+
+            const recentContainer = document.getElementById('dashboard-recent-loans');
+            if (recentLoans.length === 0) {
+                recentContainer.innerHTML = `
+                    <div class="p-8 text-center text-slate-500 text-sm">
+                        Nenhum empréstimo registrado ainda. Clique em <strong>Novo Empréstimo</strong> para começar.
+                    </div>
+                `;
+            } else {
+                recentContainer.innerHTML = recentLoans.map(loan => {
+                    const book = state.books.find(b => b.id === loan.bookId);
+                    const member = state.members.find(m => m.id === loan.memberId);
+                    const overdue = isLoanOverdue(loan);
+
+                    let statusBadge = '';
+                    if (loan.status === 'returned') {
+                        statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">Devolvido</span>`;
+                    } else if (overdue) {
+                        statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-700 border border-rose-200/60">Atrasado</span>`;
+                    } else {
+                        statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/60">Ativo</span>`;
+                    }
+
+                    return `
+                        <div class="px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/70 transition-colors">
+                            <div class="flex items-start gap-3 min-w-0">
+                                <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 mt-0.5">
+                                    <i data-lucide="book" class="w-4 h-4"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-semibold text-slate-900 truncate">${escapeHTML(book ? book.title : 'Livro removido')}</p>
+                                    <p class="text-xs text-slate-500 truncate">
+                                        ${escapeHTML(member ? member.name : 'Leitor removido')} • Retirado em ${formatDateBR(loan.loanDate)} • Previsto: ${formatDateBR(loan.dueDate)}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                                ${statusBadge}
+                                ${loan.status === 'active' ? `
+                                    <button onclick="returnLoan('${loan.id}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors">
+                                        <i data-lucide="corner-down-left" class="w-3.5 h-3.5"></i>
+                                        <span>Devolver</span>
+                                    </button>
+                                ` : `
+                                    <span class="text-xs text-slate-400">em ${formatDateBR(loan.returnDate)}</span>
+                                `}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        // ==========================================
+        // GESTÃO DE ACERVO (LIVROS)
+        // ==========================================
+
+        /** Popula o filtro de categorias com base nos livros cadastrados */
+        function populateCategoryFilter() {
+            const select = document.getElementById('book-category-filter');
+            const currentVal = select.value;
+            const categories = [...new Set(state.books.map(b => b.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+            select.innerHTML = `<option value="all">Todas as categorias</option>` +
+                categories.map(cat => `<option value="${escapeHTML(cat)}">${escapeHTML(cat)}</option>`).join('');
+
+            if (categories.includes(currentVal)) {
+                select.value = currentVal;
+            }
+        }
+
+        /** Renderiza a tabela de livros aplicando busca e filtros */
+        function renderBooks() {
+            const search = document.getElementById('book-search').value.trim().toLowerCase();
+            const category = document.getElementById('book-category-filter').value;
+            const availability = document.getElementById('book-availability-filter').value;
+
+            const filtered = state.books.filter(book => {
+                const matchesSearch = !search ||
+                    book.title.toLowerCase().includes(search) ||
+                    book.author.toLowerCase().includes(search) ||
+                    book.isbn.toLowerCase().includes(search) ||
+                    book.category.toLowerCase().includes(search);
+
+                const matchesCat = category === 'all' || book.category === category;
+                const matchesAvail = availability === 'all' ||
+                    (availability === 'available' && book.availableCopies > 0) ||
+                    (availability === 'unavailable' && book.availableCopies === 0);
+
+                return matchesSearch && matchesCat && matchesAvail;
+            }).sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
+
+            document.getElementById('books-count-label').textContent =
+                `Exibindo ${filtered.length} de ${state.books.length} títulos`;
+
+            const tbody = document.getElementById('books-table-body');
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-12 px-5 text-center text-slate-500">
+                            <div class="flex flex-col items-center gap-2">
+                                <i data-lucide="book-x" class="w-8 h-8 text-slate-300"></i>
+                                <p class="text-sm font-medium text-slate-700">Nenhum livro encontrado</p>
+                                <p class="text-xs text-slate-400">Tente ajustar os filtros ou cadastre um novo título no acervo.</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(book => {
+                const isAvailable = book.availableCopies > 0;
+                const availBadge = isAvailable
+                    ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/70">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            ${book.availableCopies}/${book.totalCopies} disponíveis
+                       </span>`
+                    : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/70">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                            0/${book.totalCopies} esgotado
+                       </span>`;
+
+                return `
+                    <tr class="hover:bg-slate-50/70 transition-colors">
+                        <td class="py-3.5 px-5">
+                            <div class="font-semibold text-slate-900">${escapeHTML(book.title)}</div>
+                            <div class="text-xs text-slate-500 mt-0.5">${escapeHTML(book.author)}</div>
+                            <div class="text-[11px] text-slate-400 mt-1 md:hidden">${escapeHTML(book.category)} • ${book.year}</div>
+                        </td>
+                        <td class="py-3.5 px-4 hidden md:table-cell">
+                            <span class="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-700">${escapeHTML(book.category)}</span>
+                        </td>
+                        <td class="py-3.5 px-4 hidden lg:table-cell">
+                            <div class="text-xs font-mono text-slate-600">${escapeHTML(book.isbn)}</div>
+                            <div class="text-xs text-slate-400 mt-0.5">Ano: ${book.year}</div>
+                        </td>
+                        <td class="py-3.5 px-4">
+                            ${availBadge}
+                        </td>
+                        <td class="py-3.5 px-5 text-right">
+                            <div class="inline-flex items-center justify-end gap-1.5">
+                                <button onclick="openLoanModal('${book.id}')" ${!isAvailable ? 'disabled' : ''} title="${isAvailable ? 'Emprestar livro' : 'Sem exemplares disponíveis'}" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1 transition-colors ${isAvailable ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}">
+                                    <i data-lucide="hand-helping" class="w-3.5 h-3.5"></i>
+                                    <span class="hidden sm:inline">Emprestar</span>
+                                </button>
+                                <button onclick="openBookModal('${book.id}')" title="Editar livro" class="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
+                                    <i data-lucide="pencil" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="requestDeleteBook('${book.id}')" title="Excluir livro" class="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        /** Abre o modal de cadastro/edição de livro */
+        function openBookModal(bookId = null) {
+            const form = document.getElementById('book-form');
+            const hint = document.getElementById('book-copies-hint');
+            form.reset();
+            hint.classList.add('hidden');
+
+            if (bookId) {
+                const book = state.books.find(b => b.id === bookId);
+                if (!book) return;
+                const borrowedCount = book.totalCopies - book.availableCopies;
+
+                document.getElementById('book-modal-title').textContent = 'Editar Livro';
+                document.getElementById('book-id').value = book.id;
+                document.getElementById('book-title').value = book.title;
+                document.getElementById('book-author').value = book.author;
+                document.getElementById('book-category').value = book.category;
+                document.getElementById('book-isbn').value = book.isbn;
+                document.getElementById('book-year').value = book.year;
+                document.getElementById('book-copies').value = book.totalCopies;
+                document.getElementById('book-copies').min = Math.max(1, borrowedCount);
+
+                if (borrowedCount > 0) {
+                    hint.textContent = `Atenção: existem ${borrowedCount} exemplar(es) atualmente emprestados. A quantidade total não pode ser menor que ${borrowedCount}.`;
+                    hint.classList.remove('hidden');
+                }
+            } else {
+                document.getElementById('book-modal-title').textContent = 'Cadastrar Novo Livro';
+                document.getElementById('book-id').value = '';
+                document.getElementById('book-copies').min = 1;
+                document.getElementById('book-year').value = new Date().getFullYear();
+            }
+
+            openModal('book-modal');
+        }
+
+        /** Salva o livro (criação ou edição) */
+        function handleBookSubmit(event) {
+            event.preventDefault();
+            const id = document.getElementById('book-id').value;
+            const title = document.getElementById('book-title').value.trim();
+            const author = document.getElementById('book-author').value.trim();
+            const category = document.getElementById('book-category').value.trim();
+            const isbn = document.getElementById('book-isbn').value.trim();
+            const year = parseInt(document.getElementById('book-year').value, 10);
+            const totalCopies = parseInt(document.getElementById('book-copies').value, 10);
+
+            if (!title || !author || !category || !isbn || isNaN(year) || isNaN(totalCopies) || totalCopies < 1) {
+                showToast('Preencha todos os campos obrigatórios corretamente.', 'error');
+                return;
+            }
+
+            if (id) {
+                const book = state.books.find(b => b.id === id);
+                if (!book) return;
+                const borrowedCount = book.totalCopies - book.availableCopies;
+
+                if (totalCopies < borrowedCount) {
+                    showToast(`Não é possível reduzir para ${totalCopies}: há ${borrowedCount} exemplar(es) emprestados.`, 'error');
+                    return;
+                }
+
+                book.title = title;
+                book.author = author;
+                book.category = category;
+                book.isbn = isbn;
+                book.year = year;
+                book.totalCopies = totalCopies;
+                book.availableCopies = totalCopies - borrowedCount;
+
+                saveState();
+                closeModal('book-modal');
+                renderAll();
+                showToast(`Livro "${title}" atualizado com sucesso!`, 'success');
+            } else {
+                const newBook = {
+                    id: generateId('bk'),
+                    title,
+                    author,
+                    category,
+                    isbn,
+                    year,
+                    totalCopies,
+                    availableCopies: totalCopies
+                };
+                state.books.push(newBook);
+                saveState();
+                closeModal('book-modal');
+                renderAll();
+                showToast(`Livro "${title}" adicionado ao acervo!`, 'success');
+            }
+        }
+
+        /** Solicita exclusão de um livro (impede se houver empréstimos ativos) */
+        function requestDeleteBook(bookId) {
+            const book = state.books.find(b => b.id === bookId);
+            if (!book) return;
+
+            const hasActiveLoans = state.loans.some(l => l.bookId === bookId && l.status === 'active');
+            if (hasActiveLoans) {
+                showToast(`Não é possível excluir "${book.title}" pois há exemplares emprestados no momento.`, 'error');
+                return;
+            }
+
+            openConfirmModal(
+                'Excluir livro do acervo?',
+                `Deseja realmente remover "${book.title}" de ${book.author}? Esta ação não poderá ser desfeita.`,
+                () => {
+                    state.books = state.books.filter(b => b.id !== bookId);
+                    saveState();
+                    renderAll();
+                    showToast(`Livro "${book.title}" removido do acervo.`, 'info');
+                },
+                'Excluir Livro'
+            );
+        }
+
+        // ==========================================
+        // GESTÃO DE EMPRÉSTIMOS E DEVOLUÇÕES
+        // ==========================================
+
+        /** Define o filtro de status dos empréstimos */
+        function setLoanFilter(filter) {
+            state.loanFilter = filter;
+            renderLoans();
+        }
+
+        /** Renderiza a tabela de empréstimos e os botões de filtro */
+        function renderLoans() {
+            // Atualiza estilo dos botões de filtro
+            document.querySelectorAll('.loan-filter-btn').forEach(btn => {
+                const isActive = btn.dataset.loanFilter === state.loanFilter;
+                if (isActive) {
+                    btn.classList.add('bg-indigo-600', 'text-white', 'shadow-xs');
+                    btn.classList.remove('bg-slate-100', 'text-slate-600', 'hover:bg-slate-200');
+                } else {
+                    btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-xs');
+                    btn.classList.add('bg-slate-100', 'text-slate-600', 'hover:bg-slate-200');
+                }
+            });
+
+            const search = document.getElementById('loan-search').value.trim().toLowerCase();
+
+            const filtered = state.loans.filter(loan => {
+                const overdue = isLoanOverdue(loan);
+                if (state.loanFilter === 'active' && loan.status !== 'active') return false;
+                if (state.loanFilter === 'overdue' && !overdue) return false;
+                if (state.loanFilter === 'returned' && loan.status !== 'returned') return false;
+
+                if (search) {
+                    const book = state.books.find(b => b.id === loan.bookId);
+                    const member = state.members.find(m => m.id === loan.memberId);
+                    const bookTitle = book ? book.title.toLowerCase() : '';
+                    const memberName = member ? member.name.toLowerCase() : '';
+                    const memberReg = member ? member.registration.toLowerCase() : '';
+                    return bookTitle.includes(search) || memberName.includes(search) || memberReg.includes(search);
+                }
+                return true;
+            }).sort((a, b) => {
+                // Ordena atrasados primeiro, depois ativos, depois devolvidos, e por data mais recente
+                const score = l => l.status === 'returned' ? 2 : (isLoanOverdue(l) ? 0 : 1);
+                if (score(a) !== score(b)) return score(a) - score(b);
+                return b.loanDate.localeCompare(a.loanDate);
+            });
+
+            const tbody = document.getElementById('loans-table-body');
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-12 px-5 text-center text-slate-500">
+                            <div class="flex flex-col items-center gap-2">
+                                <i data-lucide="clipboard-list" class="w-8 h-8 text-slate-300"></i>
+                                <p class="text-sm font-medium text-slate-700">Nenhum empréstimo encontrado</p>
+                                <p class="text-xs text-slate-400">Tente alterar o filtro selecionado ou registre um novo empréstimo.</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(loan => {
+                const book = state.books.find(b => b.id === loan.bookId);
+                const member = state.members.find(m => m.id === loan.memberId);
+                const overdue = isLoanOverdue(loan);
+                const daysLate = overdue ? getDaysOverdue(loan.dueDate) : 0;
+
+                let statusBadge = '';
+                if (loan.status === 'returned') {
+                    statusBadge = `
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/70">
+                            <i data-lucide="check" class="w-3 h-3"></i>
+                            Devolvido
+                        </span>
+                    `;
+                } else if (overdue) {
+                    statusBadge = `
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-700 border border-rose-200">
+                            <i data-lucide="alert-circle" class="w-3 h-3"></i>
+                            Atrasado (${daysLate}d)
+                        </span>
+                    `;
+                } else {
+                    statusBadge = `
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/70">
+                            <i data-lucide="clock" class="w-3 h-3"></i>
+                            Em andamento
+                        </span>
+                    `;
+                }
+
+                return `
+                    <tr class="${overdue ? 'bg-rose-50/40 hover:bg-rose-50/70' : 'hover:bg-slate-50/70'} transition-colors">
+                        <td class="py-3.5 px-5">
+                            <div class="font-semibold text-slate-900">${escapeHTML(book ? book.title : 'Livro removido')}</div>
+                            <div class="text-xs text-slate-500 mt-0.5">${escapeHTML(book ? book.author : '-')}</div>
+                        </td>
+                        <td class="py-3.5 px-4">
+                            <div class="font-medium text-slate-800">${escapeHTML(member ? member.name : 'Leitor removido')}</div>
+                            <div class="text-xs text-slate-400 mt-0.5">${escapeHTML(member ? member.registration : '-')}</div>
+                        </td>
+                        <td class="py-3.5 px-4 hidden md:table-cell text-xs">
+                            <div class="text-slate-600">Retirada: <span class="font-medium text-slate-800">${formatDateBR(loan.loanDate)}</span></div>
+                            <div class="mt-0.5 ${overdue ? 'text-rose-600 font-semibold' : 'text-slate-600'}">
+                                Previsão: ${formatDateBR(loan.dueDate)}
+                            </div>
+                            ${loan.returnDate ? `<div class="mt-0.5 text-emerald-600 font-medium">Devolvido: ${formatDateBR(loan.returnDate)}</div>` : ''}
+                        </td>
+                        <td class="py-3.5 px-4">
+                            ${statusBadge}
+                            <div class="text-[11px] text-slate-500 mt-1 md:hidden">Prev: ${formatDateBR(loan.dueDate)}</div>
+                        </td>
+                        <td class="py-3.5 px-5 text-right">
+                            ${loan.status === 'active' ? `
+                                <div class="inline-flex items-center justify-end gap-1.5 flex-wrap">
+                                    <button onclick="renewLoan('${loan.id}')" title="Renovar por mais 7 dias" class="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors inline-flex items-center gap-1">
+                                        <i data-lucide="calendar-plus" class="w-3.5 h-3.5 text-indigo-500"></i>
+                                        <span>Renovar (+7d)</span>
+                                    </button>
+                                    <button onclick="returnLoan('${loan.id}')" title="Registrar devolução" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors inline-flex items-center gap-1">
+                                        <i data-lucide="corner-down-left" class="w-3.5 h-3.5"></i>
+                                        <span>Devolver</span>
+                                    </button>
+                                </div>
+                            ` : `
+                                <span class="text-xs text-slate-400">Concluído em ${formatDateBR(loan.returnDate)}</span>
+                            `}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        /** Abre o modal de Novo Empréstimo */
+        function openLoanModal(preselectedBookId = null) {
+            const availableBooks = state.books
+                .filter(b => b.availableCopies > 0)
+                .sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
+
+            if (availableBooks.length === 0) {
+                showToast('Não há livros com exemplares disponíveis para empréstimo no momento.', 'warning');
+                return;
+            }
+            if (state.members.length === 0) {
+                showToast('Cadastre pelo menos um leitor antes de registrar um empréstimo.', 'warning');
+                return;
+            }
+
+            const bookSelect = document.getElementById('loan-book-select');
+            bookSelect.innerHTML = availableBooks.map(b =>
+                `<option value="${b.id}">${escapeHTML(b.title)} — ${escapeHTML(b.author)} (${b.availableCopies} disp.)</option>`
+            ).join('');
+
+            if (preselectedBookId && availableBooks.some(b => b.id === preselectedBookId)) {
+                bookSelect.value = preselectedBookId;
+            }
+
+            const memberSelect = document.getElementById('loan-member-select');
+            const sortedMembers = [...state.members].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+            memberSelect.innerHTML = sortedMembers.map(m =>
+                `<option value="${m.id}">${escapeHTML(m.name)} (${escapeHTML(m.registration)})</option>`
+            ).join('');
+
+            const today = getTodayStr();
+            document.getElementById('loan-date').value = today;
+            document.getElementById('loan-due-date').value = addDays(today, 14);
+
+            openModal('loan-modal');
+        }
+
+        /** Atualiza a data prevista de devolução (+14 dias) ao mudar a data do empréstimo */
+        function syncDefaultDueDate() {
+            const loanDate = document.getElementById('loan-date').value;
+            if (loanDate) {
+                document.getElementById('loan-due-date').value = addDays(loanDate, 14);
+            }
+        }
+
+        /** Registra o novo empréstimo */
+        function handleLoanSubmit(event) {
+            event.preventDefault();
+            const bookId = document.getElementById('loan-book-select').value;
+            const memberId = document.getElementById('loan-member-select').value;
+            const loanDate = document.getElementById('loan-date').value;
+            const dueDate = document.getElementById('loan-due-date').value;
+
+            if (dueDate < loanDate) {
+                showToast('A data prevista de devolução não pode ser anterior à data do empréstimo.', 'error');
+                return;
+            }
+
+            const book = state.books.find(b => b.id === bookId);
+            const member = state.members.find(m => m.id === memberId);
+
+            if (!book || book.availableCopies <= 0) {
+                showToast('O livro selecionado não possui exemplares disponíveis.', 'error');
+                return;
+            }
+
+            book.availableCopies -= 1;
+
+            const newLoan = {
+                id: generateId('ln'),
+                bookId,
+                memberId,
+                loanDate,
+                dueDate,
+                returnDate: null,
+                status: 'active'
+            };
+
+            state.loans.unshift(newLoan);
+            saveState();
+            closeModal('loan-modal');
+            renderAll();
+            showToast(`Empréstimo de "${book.title}" para ${member.name} registrado!`, 'success');
+        }
+
+        /** Registra a devolução de um empréstimo e restaura o exemplar */
+        function returnLoan(loanId) {
+            const loan = state.loans.find(l => l.id === loanId);
+            if (!loan || loan.status === 'returned') return;
+
+            loan.status = 'returned';
+            loan.returnDate = getTodayStr();
+
+            const book = state.books.find(b => b.id === loan.bookId);
+            if (book && book.availableCopies < book.totalCopies) {
+                book.availableCopies += 1;
+            }
+
+            saveState();
+            renderAll();
+            showToast(`Devolução de "${book ? book.title : 'livro'}" registrada com sucesso!`, 'success');
+        }
+
+        /** Renova o prazo de devolução em +7 dias */
+        function renewLoan(loanId) {
+            const loan = state.loans.find(l => l.id === loanId);
+            if (!loan || loan.status !== 'active') return;
+
+            // Se estiver atrasado, renova 7 dias a partir de hoje; caso contrário, soma 7 dias à data prevista atual
+            const today = getTodayStr();
+            const baseDate = loan.dueDate < today ? today : loan.dueDate;
+            loan.dueDate = addDays(baseDate, 7);
+
+            saveState();
+            renderAll();
+            showToast(`Empréstimo renovado! Nova data prevista: ${formatDateBR(loan.dueDate)}.`, 'info');
+        }
+
+        // ==========================================
+        // GESTÃO DE LEITORES (MEMBROS)
+        // ==========================================
+
+        /** Conta quantos empréstimos ativos um leitor possui */
+        function getActiveLoanCountByMember(memberId) {
+            return state.loans.filter(l => l.memberId === memberId && l.status === 'active').length;
+        }
+
+        /** Renderiza os cards de leitores */
+        function renderMembers() {
+            const search = document.getElementById('member-search').value.trim().toLowerCase();
+
+            const filtered = state.members.filter(m =>
+                !search ||
+                m.name.toLowerCase().includes(search) ||
+                m.registration.toLowerCase().includes(search) ||
+                m.email.toLowerCase().includes(search)
+            ).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+
+            const grid = document.getElementById('members-grid');
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-500">
+                        <div class="flex flex-col items-center gap-2">
+                            <i data-lucide="user-x" class="w-8 h-8 text-slate-300"></i>
+                            <p class="text-sm font-medium text-slate-700">Nenhum leitor encontrado</p>
+                            <p class="text-xs text-slate-400">Verifique a busca ou cadastre um novo leitor.</p>
+                        </div>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            grid.innerHTML = filtered.map(member => {
+                const activeCount = getActiveLoanCountByMember(member.id);
+                const overdueCount = state.loans.filter(l => l.memberId === member.id && isLoanOverdue(l)).length;
+
+                let loanBadge = '';
+                if (overdueCount > 0) {
+                    loanBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-700">${activeCount} emprestado(s) • ${overdueCount} atrasado(s)</span>`;
+                } else if (activeCount > 0) {
+                    loanBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700">${activeCount} ${activeCount === 1 ? 'livro emprestado' : 'livros emprestados'}</span>`;
+                } else {
+                    loanBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">Sem empréstimos ativos</span>`;
+                }
+
+                return `
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between gap-4 hover:border-slate-300 transition-colors">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-11 h-11 rounded-xl bg-indigo-100 text-indigo-700 font-bold text-sm flex items-center justify-center shrink-0">
+                                    ${escapeHTML(getInitials(member.name))}
+                                </div>
+                                <div class="min-w-0">
+                                    <h4 class="font-semibold text-slate-900 truncate">${escapeHTML(member.name)}</h4>
+                                    <p class="text-xs font-mono text-slate-500 mt-0.5">${escapeHTML(member.registration)}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button onclick="openMemberModal('${member.id}')" title="Editar leitor" class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
+                                    <i data-lucide="pencil" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="requestDeleteMember('${member.id}')" title="Excluir leitor" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5 text-xs text-slate-600">
+                            <div class="flex items-center gap-2 truncate">
+                                <i data-lucide="mail" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+                                <span class="truncate">${escapeHTML(member.email)}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="phone" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+                                <span>${escapeHTML(member.phone)}</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                            ${loanBadge}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        /** Abre o modal de cadastro/edição de leitor */
+        function openMemberModal(memberId = null) {
+            const form = document.getElementById('member-form');
+            form.reset();
+
+            if (memberId) {
+                const member = state.members.find(m => m.id === memberId);
+                if (!member) return;
+                document.getElementById('member-modal-title').textContent = 'Editar Leitor';
+                document.getElementById('member-id').value = member.id;
+                document.getElementById('member-name').value = member.name;
+                document.getElementById('member-registration').value = member.registration;
+                document.getElementById('member-phone').value = member.phone;
+                document.getElementById('member-email').value = member.email;
+            } else {
+                document.getElementById('member-modal-title').textContent = 'Cadastrar Novo Leitor';
+                document.getElementById('member-id').value = '';
+                // Sugere automaticamente o próximo número de matrícula
+                const nextNum = String(state.members.length + 1).padStart(3, '0');
+                document.getElementById('member-registration').value = `BIB-${new Date().getFullYear()}-${nextNum}`;
+            }
+
+            openModal('member-modal');
+        }
+
+        /** Salva o leitor (criação ou edição) */
+        function handleMemberSubmit(event) {
+            event.preventDefault();
+            const id = document.getElementById('member-id').value;
+            const name = document.getElementById('member-name').value.trim();
+            const registration = document.getElementById('member-registration').value.trim();
+            const phone = document.getElementById('member-phone').value.trim();
+            const email = document.getElementById('member-email').value.trim();
+
+            if (!name || !registration || !phone || !email) {
+                showToast('Preencha todos os campos do leitor.', 'error');
+                return;
+            }
+
+            // Verifica duplicidade de matrícula
+            const duplicateReg = state.members.some(m =>
+                m.registration.toLowerCase() === registration.toLowerCase() && m.id !== id
+            );
+            if (duplicateReg) {
+                showToast(`A matrícula "${registration}" já está em uso por outro leitor.`, 'error');
+                return;
+            }
+
+            if (id) {
+                const member = state.members.find(m => m.id === id);
+                if (!member) return;
+                member.name = name;
+                member.registration = registration;
+                member.phone = phone;
+                member.email = email;
+                saveState();
+                closeModal('member-modal');
+                renderAll();
+                showToast(`Cadastro de "${name}" atualizado!`, 'success');
+            } else {
+                state.members.push({
+                    id: generateId('mb'),
+                    name,
+                    registration,
+                    phone,
+                    email
+                });
+                saveState();
+                closeModal('member-modal');
+                renderAll();
+                showToast(`Leitor "${name}" cadastrado com sucesso!`, 'success');
+            }
+        }
+
+        /** Solicita exclusão de leitor (bloqueia se possuir empréstimos ativos) */
+        function requestDeleteMember(memberId) {
+            const member = state.members.find(m => m.id === memberId);
+            if (!member) return;
+
+            const activeLoans = getActiveLoanCountByMember(memberId);
+            if (activeLoans > 0) {
+                showToast(`Não é possível excluir "${member.name}": este leitor possui ${activeLoans} livro(s) ainda não devolvido(s).`, 'error');
+                return;
+            }
+
+            openConfirmModal(
+                'Excluir leitor?',
+                `Deseja realmente remover o cadastro de "${member.name}" (${member.registration})?`,
+                () => {
+                    state.members = state.members.filter(m => m.id !== memberId);
+                    saveState();
+                    renderAll();
+                    showToast(`Leitor "${member.name}" removido do sistema.`, 'info');
+                },
+                'Excluir Leitor'
+            );
+        }
+
+        // ==========================================
+        // MODAIS E NOTIFICAÇÕES (TOASTS)
+        // ==========================================
+
+        function openModal(modalId) {
+            const el = document.getElementById(modalId);
+            el.classList.remove('hidden');
+            el.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function closeModal(modalId) {
+            const el = document.getElementById(modalId);
+            el.classList.add('hidden');
+            el.classList.remove('flex');
+        }
+
+        /** Abre o modal customizado de confirmação (substitui window.confirm) */
+        function openConfirmModal(title, message, onConfirm, confirmLabel = 'Confirmar') {
+            document.getElementById('confirm-title').textContent = title;
+            document.getElementById('confirm-message').textContent = message;
+            const btn = document.getElementById('confirm-action-btn');
+            btn.textContent = confirmLabel;
+
+            pendingConfirmAction = onConfirm;
+            btn.onclick = () => {
+                closeModal('confirm-modal');
+                if (typeof pendingConfirmAction === 'function') {
+                    pendingConfirmAction();
+                    pendingConfirmAction = null;
+                }
+            };
+
+            openModal('confirm-modal');
+        }
+
+        /** Exibe uma notificação Toast elegante */
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const styles = {
+                success: { bg: 'bg-slate-900 text-white border-slate-800', icon: 'check-circle-2', iconColor: 'text-emerald-400' },
+                error: { bg: 'bg-rose-600 text-white border-rose-700', icon: 'x-circle', iconColor: 'text-rose-100' },
+                warning: { bg: 'bg-amber-500 text-white border-amber-600', icon: 'alert-triangle', iconColor: 'text-amber-100' },
+                info: { bg: 'bg-indigo-600 text-white border-indigo-700', icon: 'info', iconColor: 'text-indigo-100' }
+            };
+            const cfg = styles[type] || styles.info;
+
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto flex items-start gap-3 px-4 py-3.5 rounded-xl border shadow-lg text-sm font-medium transition-all duration-300 transform translate-y-2 opacity-0 ${cfg.bg}`;
+            toast.innerHTML = `
+                <i data-lucide="${cfg.icon}" class="w-5 h-5 shrink-0 mt-0.5 ${cfg.iconColor}"></i>
+                <span class="flex-1 leading-snug">${escapeHTML(message)}</span>
+                <button onclick="this.parentElement.remove()" class="opacity-70 hover:opacity-100 transition-opacity ml-1" aria-label="Fechar aviso">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            `;
+
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            // Animação de entrada
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            // Remoção automática após 4 segundos
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // Fecha modais ao pressionar ESC ou clicar fora do conteúdo do modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                ['book-modal', 'loan-modal', 'member-modal', 'confirm-modal'].forEach(closeModal);
+            }
+        });
+
+        ['book-modal', 'loan-modal', 'member-modal', 'confirm-modal'].forEach(id => {
+            document.getElementById(id).addEventListener('click', (e) => {
+                if (e.target.id === id) closeModal(id);
+            });
+        });
+
+        // ==========================================
+        // INICIALIZAÇÃO DA APLICAÇÃO
+        // ==========================================
+        window.addEventListener('DOMContentLoaded', () => {
+            loadState();
+            switchTab('dashboard');
+        });
+    </script>
 </body>
 </html>
